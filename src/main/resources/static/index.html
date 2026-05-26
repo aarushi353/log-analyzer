@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Log Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>AI Log Analyzer</h1>
+
+    <textarea
+            id="logs"
+            placeholder="Paste application logs here..."
+    ></textarea>
+
+    <button id="analyzeBtn">
+        Analyze Logs
+    </button>
+
+    <div id="loading" class="hidden">
+        Analyzing logs...
+    </div>
+
+    <div id="error" class="hidden"></div>
+
+    <div id="result" class="hidden">
+
+        <div class="card">
+            <h2>Summary</h2>
+            <p id="summary"></p>
+        </div>
+
+        <div class="card">
+            <h2>Root Causes</h2>
+            <ul id="rootCause"></ul>
+        </div>
+
+        <div class="card">
+            <h2>Recommendations</h2>
+            <ul id="recommendation"></ul>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
