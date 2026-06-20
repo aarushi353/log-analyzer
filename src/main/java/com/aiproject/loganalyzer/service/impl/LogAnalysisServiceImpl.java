@@ -9,10 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.data.redis.core.RedisTemplate;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -23,20 +21,12 @@ public class LogAnalysisServiceImpl implements LogAnalysisService {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RedisTemplate<String, Object> redisTemplate;
 
     @Value("${gemini.api.key}")
     private String apiKey;
 
     @Override
     public LogResponse analyze(LogRequest request) {
-        String cacheKey = buildCacheKey(request);
-        LogResponse cachedResponse = (LogResponse) redisTemplate.opsForValue().get(cacheKey);
-        if (cachedResponse != null) {
-            log.info("Redis cache hit");
-            return cachedResponse;
-        }
-        log.info("Redis cache miss");
         log.info("Log analysis request received");
         String prompt = buildPrompt(request);
         Map<String, Object> body = buildRequestBody(prompt);
@@ -45,10 +35,7 @@ public class LogAnalysisServiceImpl implements LogAnalysisService {
         log.info("Gemini response received");
         String aiText = extractGeminiText(response);
 
-        LogResponse result = buildSuccessResponse(aiText);
-        redisTemplate.opsForValue().set(cacheKey, result, Duration.ofMinutes(10));
-        log.info("Response cached in Redis");
-        return result;
+        return buildSuccessResponse(aiText);
     }
 
     private String buildPrompt(LogRequest request) {
@@ -90,7 +77,7 @@ public class LogAnalysisServiceImpl implements LogAnalysisService {
     }
 
     private Map<String, Object> callGemini(Map<String, Object> body) {
-        log.info("Invoking Gemini model: gemini-2.5-flash");
+        log.info("Invoking Gemini model: gemini-1.5-flash");
         return webClient.post().uri("/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey).bodyValue(body).retrieve().bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
         }).block();
     }
@@ -127,9 +114,5 @@ public class LogAnalysisServiceImpl implements LogAnalysisService {
             log.error("Gemini JSON parsing failed", e);
             throw new RuntimeException("Failed to parse Gemini response", e);
         }
-    }
-
-    private String buildCacheKey(LogRequest request) {
-        return "log-analysis:" + request.getLogs().hashCode();
     }
 }

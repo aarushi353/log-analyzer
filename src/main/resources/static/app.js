@@ -14,7 +14,7 @@ async function analyzeLogs() {
 
     try {
 
-        const response = await fetch("/api/logs/analyze", {
+        const response = await fetch("https://log-analyzer-xcmd.onrender.com/api/logs/analyze", {
             method: "POST", headers: {
                 "Content-Type": "application/json"
             }, body: JSON.stringify({
